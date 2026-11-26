@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="format-detection" content="telephone=no" />
   <title>请前往电脑端审批 - 万华化学</title>
-  <script src="https://lf-scm-cn.feishucdn.com/lark/op/h5-js-sdk-1.5.30.js"></script>
   <style>
     :root {
       /* 万华品牌色系（提取自 App Logo：青绿 -> 科技蓝 + 暖金点缀） */
@@ -330,12 +329,6 @@
       box-shadow: 0 6px 16px rgba(20, 86, 216, 0.24);
     }
 
-    .btn-secondary {
-      background: #FFFFFF;
-      color: var(--brand-blue);
-      border: 1px solid rgba(20, 86, 216, 0.24);
-    }
-
     .footer {
       margin-top: 18px;
       font-size: 12px;
@@ -432,11 +425,8 @@
         </div>
 
         <div class="actions">
-          <button id="ttCloseBtn" type="button" class="btn btn-primary">
-            返回审批列表（tt.closeWindow）
-          </button>
-          <button id="winCloseBtn" type="button" class="btn btn-secondary">
-            关闭窗口（window.close）
+          <button id="closeBtn" type="button" class="btn btn-primary">
+            我知道了，返回审批列表
           </button>
         </div>
       </div>
@@ -545,43 +535,8 @@
         }
       }
 
-      var h5Ready = false;
-      if (window.h5sdk && typeof window.h5sdk.ready === "function") {
-        window.h5sdk.ready(function () {
-          h5Ready = true;
-        });
-      }
-
-      function callTtCloseWindow() {
-        if (!window.tt || typeof window.tt.closeWindow !== "function") {
-          showToast("当前环境无 tt.closeWindow（非飞书端或 SDK 未加载）");
-          return;
-        }
-        window.tt.closeWindow({
-          fail: function (res) {
-            showToast("tt.closeWindow 失败：" + (res && res.errMsg ? res.errMsg : JSON.stringify(res)));
-          }
-        });
-      }
-
-      document.getElementById("ttCloseBtn").addEventListener("click", function () {
-        if (h5Ready) {
-          callTtCloseWindow();
-        } else if (window.h5sdk && typeof window.h5sdk.ready === "function") {
-          window.h5sdk.ready(function () {
-            h5Ready = true;
-            callTtCloseWindow();
-          });
-        } else {
-          callTtCloseWindow();
-        }
-      });
-
-      document.getElementById("winCloseBtn").addEventListener("click", function () {
+      document.getElementById("closeBtn").addEventListener("click", function () {
         window.close();
-        setTimeout(function () {
-          showToast("window.close() 未生效（页面未关闭）");
-        }, 300);
       });
     })();
   </script>
