@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="format-detection" content="telephone=no" />
   <title>请前往电脑端审批 - 万华化学</title>
+  <script src="https://lf-scm-cn.feishucdn.com/lark/op/h5-js-sdk-1.5.30.js"></script>
   <style>
     :root {
       /* 万华品牌色系（提取自 App Logo：青绿 -> 科技蓝 + 暖金点缀） */
@@ -246,7 +247,6 @@
       border-radius: var(--radius-inner);
       padding: 14px 16px;
       border: 1px solid var(--border-soft);
-      margin-bottom: 22px;
     }
 
     .guide-title {
@@ -301,6 +301,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      margin-top: 20px;
     }
 
     .btn {
@@ -333,11 +334,6 @@
       background: #FFFFFF;
       color: var(--brand-blue);
       border: 1px solid rgba(20, 86, 216, 0.24);
-      display: none;
-    }
-
-    .btn-secondary.visible {
-      display: inline-flex;
     }
 
     .footer {
@@ -436,15 +432,11 @@
         </div>
 
         <div class="actions">
-          <button id="copyPcBtn" type="button" class="btn btn-secondary">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            复制电脑端审批链接
+          <button id="ttCloseBtn" type="button" class="btn btn-primary">
+            返回审批列表（tt.closeWindow）
           </button>
-          <button id="backBtn" type="button" class="btn btn-primary">
-            我知道了，返回审批列表
+          <button id="winCloseBtn" type="button" class="btn btn-secondary">
+            关闭窗口（window.close）
           </button>
         </div>
       </div>
@@ -511,12 +503,11 @@
       }
 
       // 支持通过 URL Query 透传动态信息（均可选）：
-      // 例：?title=OA新闻审批&system=OA系统&id=202609290000000012&pc_url=https://...
+      // 例：?title=OA新闻审批&system=OA系统&id=202609290000000012
       var params = new URLSearchParams(window.location.search);
       var title = params.get("title");
       var system = params.get("system");
       var docId = params.get("id");
-      var pcUrl = params.get("pc_url");
 
       var rows = [];
       if (title) {
@@ -554,24 +545,43 @@
         }
       }
 
-      if (pcUrl && /^https?:\/\//i.test(pcUrl)) {
-        var copyPcBtn = document.getElementById("copyPcBtn");
-        copyPcBtn.classList.add("visible");
-        copyPcBtn.addEventListener("click", function () {
-          copyText(pcUrl, "已复制链接，可发送到电脑端打开");
+      var h5Ready = false;
+      if (window.h5sdk && typeof window.h5sdk.ready === "function") {
+        window.h5sdk.ready(function () {
+          h5Ready = true;
         });
       }
 
-      document.getElementById("backBtn").addEventListener("click", function () {
-        if (window.tt && typeof window.tt.closeWindow === "function") {
-          window.tt.closeWindow();
+      function callTtCloseWindow() {
+        if (!window.tt || typeof window.tt.closeWindow !== "function") {
+          showToast("当前环境无 tt.closeWindow（非飞书端或 SDK 未加载）");
           return;
         }
-        if (window.history.length > 1) {
-          window.history.back();
+        window.tt.closeWindow({
+          fail: function (res) {
+            showToast("tt.closeWindow 失败：" + (res && res.errMsg ? res.errMsg : JSON.stringify(res)));
+          }
+        });
+      }
+
+      document.getElementById("ttCloseBtn").addEventListener("click", function () {
+        if (h5Ready) {
+          callTtCloseWindow();
+        } else if (window.h5sdk && typeof window.h5sdk.ready === "function") {
+          window.h5sdk.ready(function () {
+            h5Ready = true;
+            callTtCloseWindow();
+          });
         } else {
-          showToast("点击左上角关闭或返回按钮即可返回审批列表");
+          callTtCloseWindow();
         }
+      });
+
+      document.getElementById("winCloseBtn").addEventListener("click", function () {
+        window.close();
+        setTimeout(function () {
+          showToast("window.close() 未生效（页面未关闭）");
+        }, 300);
       });
     })();
   </script>
